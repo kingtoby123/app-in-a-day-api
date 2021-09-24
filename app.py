@@ -108,13 +108,12 @@ def add_product():
     description = data.get("description")
     price = data.get("price")
     featured_image = data.get("featured_image")
-    favorited_by = data.get("favorited_by")
 
     existing_product_check = db.session.query(Product).filter(Product.name == name).filter(Product.category == category).first()
     if existing_product_check is not None:
         return jsonify("Error: Product already exists")
 
-    new_product = Product(category, collection, name, description, price, featured_image, favorited_by)
+    new_product = Product(category, collection, name, description, price, featured_image)
     db.session.add(new_product)
     db.session.commit()
 
