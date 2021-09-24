@@ -1,7 +1,6 @@
 from flask import Flask, request, jsonify
 from flask_sqlalchemy import SQLAlchemy 
 from flask_marshmallow import Marshmallow
-from flask_bcrypt import Bcrypt
 from flask_cors import CORS 
 
 app = Flask(__name__)
@@ -9,29 +8,7 @@ app.config["SQLALCHEMY_DATABASE_URI"] ="postgresql://ujtwpoarzwjpet:ca12a738a9d3
 
 db = SQLAlchemy(app)
 ma = Marshmallow(app)
-bcrypt = Bcrypt(app)
 CORS(app)
-
-class Admin(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String, nullable=False, unique=True)
-    password = db.Column(db.String, nullable=False)
-
-    def __init__(self, username, password):
-        self.username = username
-        self.password = password
-
-
-class Customer(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String, nullable=False, unique=True)
-    password = db.Column(db.String, nullable=False)
-    favorites = db.relationship("Favorites", backref="customer", cascade="all, delete, delete-orphan")
-
-    def __init__(self, username, password):
-        self.username = username
-        self.password = password
-
 
 class Product(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -61,30 +38,12 @@ class Image(db.Model):
         self.image_url = image_url
         self.product_id = product_id
 
-
-class AdminSchema(ma.Schema):
-    class Meta:
-        fields = ("id", "username", "password")
-
-admin_schema = AdminSchema()
-multi_admin_schema = AdminSchema(many=True)
-
-
 class ImageSchema(ma.Schema):
     class Meta:
         fields = ("id", "image_url", "product_id")
 
 image_schema = ImageSchema()
 multi_image_schema = ImageSchema(many=True)
-
-
-class CustomerSchema(ma.Schema):
-    class Meta:
-        fields = ("id", "username", "password", "favorites")
-    favorites = ma.Nested(multi_favorites_schema)
-
-customer_schema = CustomerSchema()
-multi_customer_schema = CustomerSchema(many=True)
 
 class ProductSchema(ma.Schema):
     class Meta:
@@ -108,6 +67,7 @@ def add_product():
     description = data.get("description")
     price = data.get("price")
     featured_image = data.get("featured_image")
+    favorited_by = data.get("favorited_by")
 
     existing_product_check = db.session.query(Product).filter(Product.name == name).filter(Product.category == category).first()
     if existing_product_check is not None:
