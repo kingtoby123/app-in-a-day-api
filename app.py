@@ -24,23 +24,13 @@ class Admin(db.Model):
 
 class Customer(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    email = db.Column(db.String, nullable=False, unique=True)
+    username = db.Column(db.String, nullable=False, unique=True)
     password = db.Column(db.String, nullable=False)
     favorites = db.relationship("Favorites", backref="customer", cascade="all, delete, delete-orphan")
 
-    def __init__(self, email, password):
-        self.email = email
+    def __init__(self, username, password):
+        self.username = username
         self.password = password
-
-
-class Favorites(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    customer_id = db.Column(db.Integer, db.ForeignKey("customer.id"), nullable=False)
-    product_id = db.Column(db.Integer, db.ForeignKey("product.id"), nullable=False)
-
-    def __init__(self, customer_id, product_id):
-        self.customer_id = customer_id
-        self.product_id = product_id
 
 
 class Product(db.Model):
@@ -48,10 +38,9 @@ class Product(db.Model):
     category = db.Column(db.String, nullable=False)
     collection = db.Column(db.String)
     name = db.Column(db.String, nullable=False, unique=True)
-    description = db.Column(db.Text, nullable=False)
+    description = db.Column(db.Text)
     price = db.Column(db.Integer, nullable=False)
     featured_image = db.Column(db.String, nullable=False)
-    favorited_by = db.relationship("Favorites", backref="product", cascade="all, delete, delete-orphan")
     images = db.relationship("Image", backref="product", cascade="all, delete, delete-orphan")
 
     def __init__(self, category, collection, name, description, price, featured_image):
@@ -80,12 +69,6 @@ class AdminSchema(ma.Schema):
 admin_schema = AdminSchema()
 multi_admin_schema = AdminSchema(many=True)
 
-class FavoritesSchema(ma.Schema):
-    class Meta:
-        fields = ("id", "customer_id", "product_id")
-
-favorites_schema = FavoritesSchema()
-multi_favorites_schema = FavoritesSchema(many=True)
 
 class ImageSchema(ma.Schema):
     class Meta:
@@ -97,7 +80,7 @@ multi_image_schema = ImageSchema(many=True)
 
 class CustomerSchema(ma.Schema):
     class Meta:
-        fields = ("id", "email", "password", "favorites")
+        fields = ("id", "username", "password", "favorites")
     favorites = ma.Nested(multi_favorites_schema)
 
 customer_schema = CustomerSchema()
@@ -105,9 +88,8 @@ multi_customer_schema = CustomerSchema(many=True)
 
 class ProductSchema(ma.Schema):
     class Meta:
-        fields = ("id", "category", "collection", "name", "description", "price", "featured_image", "images", "favorited_by")
+        fields = ("id", "category", "collection", "name", "description", "price", "featured_image", "images")
     images = ma.Nested(multi_image_schema)
-    favorited_by = ma.Nested(multi_favorites_schema)
 
 product_schema = ProductSchema()
 multi_product_schema = ProductSchema(many=True)
